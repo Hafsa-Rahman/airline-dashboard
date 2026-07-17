@@ -46,3 +46,15 @@ const RECENT_ACTIVITY = [
   { icon: "plane-landing", text: "AD 205 landed from Dubai — Belt 3",            time: "22 min ago" },
   { icon: "x-circle",      text: "Ticket TK-90236 cancelled by passenger",       time: "34 min ago" },
 ];
+
+
+export const lunchMenu = [
+    { item: "Vegetarian Sandwich", price: 12.00 },
+    { item: "Grilled Chicken", price: 18.00 },
+    { item: "Premium Pasta", price: 25.00 }
+];
+
+export const baggageConfig = {
+    minWeight: 0,
+    maxWeight: 30
+};

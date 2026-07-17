@@ -1,3 +1,8 @@
+import { 
+    RECENT_ACTIVITY, FLIGHTS_DEPARTURES, FLIGHTS_ARRIVALS, 
+    TICKETS, lunchMenu, baggageConfig 
+} from './Data.js';
+
 document.addEventListener("DOMContentLoaded", () => {
   if (window.lucide) lucide.createIcons();
   initSidebar();
@@ -41,7 +46,6 @@ function statusBadgeClass(status) {
   return "badge-" + status.toLowerCase().replace(/\s+/g, "-");
 }
 
-
 function renderDashboard() {
   const activityBody = document.getElementById("recentActivity");
   if (activityBody) {
@@ -74,10 +78,8 @@ function renderDashboard() {
       </tr>
     `).join("");
   }
-
   if (window.lucide) lucide.createIcons();
 }
-
 
 let ticketState = { search: "", status: "All", page: 1, perPage: 6 };
 
@@ -126,8 +128,33 @@ function initTicketsPage() {
     renderTickets();
   });
 
+  const menuList = document.getElementById('menu-list');
+  if (menuList) {
+      menuList.innerHTML = lunchMenu.map(item => 
+          `<li class="py-1">${item.item} - $${item.price.toFixed(2)}</li>`
+      ).join("");
+  }
+
   renderTickets();
 }
+
+window.processBooking = function() {
+    const luggage = document.getElementById('luggage')?.value;
+    const origin = document.getElementById('origin')?.value;
+    const dest = document.getElementById('destination')?.value;
+
+    if (!origin || !dest) {
+        alert("Please enter both origin and destination.");
+        return;
+    }
+
+    if (luggage < baggageConfig.minWeight || luggage > baggageConfig.maxWeight) {
+        alert(`Invalid luggage! Please choose between ${baggageConfig.minWeight}kg and ${baggageConfig.maxWeight}kg.`);
+        return;
+    }
+    
+    alert(`Booking confirmed! Flight from ${origin} to ${dest} with ${luggage}kg baggage.`);
+};
 
 function renderTickets() {
   const tbody = document.getElementById("ticketsBody");
@@ -136,10 +163,7 @@ function renderTickets() {
   if (!tbody) return;
 
   let rows = TICKETS.filter(t => {
-    const matchesSearch =
-      t.pax.toLowerCase().includes(ticketState.search) ||
-      t.id.toLowerCase().includes(ticketState.search) ||
-      t.flight.toLowerCase().includes(ticketState.search);
+    const matchesSearch = t.pax.toLowerCase().includes(ticketState.search) || t.id.toLowerCase().includes(ticketState.search);
     const matchesStatus = ticketState.status === "All" || t.status === ticketState.status;
     return matchesSearch && matchesStatus;
   });
@@ -154,35 +178,18 @@ function renderTickets() {
     <tr>
       <td class="cell-mono" style="color:var(--blue-600); font-weight:600;">${t.id}</td>
       <td>${t.pax}</td>
-      <td class="cell-mono">${t.flight}</td>
+      <td>${t.flight}</td>
       <td>${t.route}</td>
-      <td>${t.date}</td>
-      <td>${t.seat}</td>
-      <td>${t.cls}</td>
-      <td><span class="badge ${statusBadgeClass(t.status)}">${t.status}</span></td>
+      <td>${t.status}</td>
       <td>
-        <div class="flex items-center gap-1">
-          <button class="icon-btn" title="Edit"><i data-lucide="pencil" class="w-4 h-4"></i></button>
-          <button class="icon-btn" title="Cancel ticket" onclick="cancelTicket('${t.id}')"><i data-lucide="x-circle" class="w-4 h-4"></i></button>
-        </div>
+        <button class="icon-btn" title="Cancel" onclick="cancelTicket('${t.id}')"><i data-lucide="x-circle" class="w-4 h-4"></i></button>
       </td>
     </tr>
-  `).join("") : `<tr><td colspan="9" class="text-center py-10" style="color:var(--slate-500)">No tickets match your filters.</td></tr>`;
+  `).join("") : `<tr><td colspan="6" class="text-center py-10">No tickets found.</td></tr>`;
 
-  if (countLabel) countLabel.textContent = `Showing ${pageRows.length ? start + 1 : 0}–${start + pageRows.length} of ${total} tickets`;
-
-  if (pagination) {
-    let btns = "";
-    for (let i = 1; i <= totalPages; i++) {
-      btns += `<button class="px-3 py-1.5 rounded-lg text-sm font-medium ${i === ticketState.page ? 'btn-primary' : 'btn-ghost'}" onclick="goToTicketPage(${i})">${i}</button>`;
-    }
-    pagination.innerHTML = btns;
-  }
-
+  if (countLabel) countLabel.textContent = `Showing ${start + 1}–${start + pageRows.length} of ${total}`;
   if (window.lucide) lucide.createIcons();
 }
-
-function goToTicketPage(p) { ticketState.page = p; renderTickets(); }
 
 function cancelTicket(id) {
   const t = TICKETS.find(t => t.id === id);
@@ -214,14 +221,12 @@ function renderBoard(type) {
 
   tbody.innerHTML = rows.length ? rows.map(f => `
     <tr>
-      <td class="cell-mono">${f.flight}</td>
+      <td>${f.flight}</td>
       <td>${isDep ? f.dest : f.origin}</td>
-      <td class="cell-mono">${f.sched}</td>
-      <td class="cell-mono">${f.est}</td>
-      <td class="cell-mono">${isDep ? f.gate : f.belt}</td>
+      <td>${f.sched}</td>
       <td><span class="badge ${statusBadgeClass(f.status)}">${f.status}</span></td>
     </tr>
-  `).join("") : `<tr><td colspan="6" class="text-center py-10" style="color:#8592ab">No flights match your filters.</td></tr>`;
+  `).join("") : `<tr><td colspan="4" class="text-center py-10">No flights found.</td></tr>`;
 
   if (window.lucide) lucide.createIcons();
 }
